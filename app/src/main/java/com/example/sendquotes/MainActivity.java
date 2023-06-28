@@ -5,6 +5,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
 
 import android.Manifest;
 import android.content.ContentResolver;
@@ -35,6 +36,10 @@ public class MainActivity extends AppCompatActivity {
 
 
     ArrayList<String> contact_numbers ;
+    ArrayList<Quote> quotes;
+    Uri contentUri = Uri.parse("content://com.example.myapp.provider/quote");
+    Cursor cursor;
+    QuotesAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
         binding.spinnerContacts.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(MainActivity.this, contact_numbers.get(position), Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -71,6 +75,43 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+        binding.btnSend.setOnClickListener(v->{
+            Toast.makeText(this, ""+adapter.getPosition(), Toast.LENGTH_SHORT).show();
+        });
+
+
+
+        loadQuotes();
+        binding.pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                Toast.makeText(MainActivity.this, ""+position, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+    private void loadQuotes() {
+        quotes = new ArrayList<>();
+        int id;
+        String quote_text, quote_author;
+        cursor = getContentResolver().query(contentUri, null, null, null, null);
+        while (cursor.moveToNext()){
+            id = cursor.getInt(cursor.getColumnIndex("id"));
+            quote_text = cursor.getString(cursor.getColumnIndex("quote"));
+            quote_author = cursor.getString(cursor.getColumnIndex("author"));
+            quotes.add(new Quote(id, quote_text, quote_author));
+        }
+        showQuotes();
+
+
+    }
+
+    private void showQuotes() {
+        adapter = new QuotesAdapter(this, quotes);
+        binding.pager.setAdapter(adapter);
+        binding.pager.getChildAt(0).setOverScrollMode(View.OVER_SCROLL_NEVER);
     }
 
     private void loadContacts() {
@@ -82,10 +123,9 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<String> contact_names = new ArrayList<>();
         contact_numbers = new ArrayList<>();
         Toast.makeText(this, "hello", Toast.LENGTH_SHORT).show();
-        ContentResolver cv = getContentResolver();
+        ContentResolver cr = getContentResolver();
         Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
-        Cursor cursor = cv.query(uri, null, null, null, null);
-        Toast.makeText(this, cursor.getCount()+" Contacts", Toast.LENGTH_LONG).show();
+        Cursor cursor = cr.query(uri, null, null, null, null);
         while (cursor.moveToNext()){
             String contactName = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
             String numberPhone = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
