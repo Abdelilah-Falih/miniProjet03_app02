@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
         binding.pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
-                Toast.makeText(MainActivity.this, ""+position, Toast.LENGTH_SHORT).show();
+
             }
         });
 
