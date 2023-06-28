@@ -50,8 +50,5 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.MyViewHold
             tv_author = item.findViewById(R.id.tv_author);
         }
     }
-    public int getPosition(){
-        return this.position_item;
-    }
 
 }

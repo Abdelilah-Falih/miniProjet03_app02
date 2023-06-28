@@ -11,11 +11,13 @@ import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -40,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     Uri contentUri = Uri.parse("content://com.example.myapp.provider/quote");
     Cursor cursor;
     QuotesAdapter adapter;
+    String phone_number, selected_quote;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         binding.spinnerContacts.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                phone_number = contact_numbers.get(position);
             }
 
             @Override
@@ -77,8 +81,9 @@ public class MainActivity extends AppCompatActivity {
 
 
         binding.btnSend.setOnClickListener(v->{
-            Toast.makeText(this, ""+adapter.getPosition(), Toast.LENGTH_SHORT).show();
+            sendSms();
         });
+
 
 
 
@@ -86,12 +91,19 @@ public class MainActivity extends AppCompatActivity {
         binding.pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
-
-
+                selected_quote = String.format("%s\n\t%s", quotes.get(position).getQuote(), quotes.get(position).getAuthor());
             }
         });
 
     }
+
+    private void sendSms() {
+        Uri uri = Uri.parse("smsto:"+phone_number);
+        Intent intent = new Intent(Intent.ACTION_SENDTO, uri);
+        intent.putExtra("sms_body", selected_quote);
+        startActivity(intent);
+    }
+
 
     private void loadQuotes() {
         quotes = new ArrayList<>();
@@ -123,10 +135,9 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> getContacts() {
         ArrayList<String> contact_names = new ArrayList<>();
         contact_numbers = new ArrayList<>();
-        Toast.makeText(this, "hello", Toast.LENGTH_SHORT).show();
         ContentResolver cr = getContentResolver();
         Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
-        Cursor cursor = cr.query(uri, null, null, null, null);
+        Cursor cursor = cr.query(uri, null, null, null, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
         while (cursor.moveToNext()){
             String contactName = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
             String numberPhone = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
